@@ -1,16 +1,17 @@
 # Python
 __pycache__/
 *.pyc
-
-# Django
-db.sqlite3
 .env
 .env.*
+db.sqlite3
+
+# Django
+staticfiles/
+media/
+
+# Node
+node_modules/
 *.log
 
-# Mac
+# OS
 .DS_Store
-
-# Virtual env
-venv/
-.env/
