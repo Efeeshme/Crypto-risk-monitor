@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Login • CryptoRiskMonitor</title>
+
+  <style>
+    body {
+      margin:0;
+      height:100vh;
+      background: linear-gradient(135deg, #0e1117, #0b3c3c);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family: Arial, sans-serif;
+      color:#eaecef;
+    }
+
+    .card {
+      width:360px;
+      background:#151922;
+      border:1px solid #2a2e39;
+      border-radius:14px;
+      padding:28px;
+      box-shadow:0 20px 40px rgba(0,0,0,.4);
+    }
+
+    h1 {
+      margin:0 0 16px 0;
+      color:#4fd1c5;
+      text-align:center;
+    }
+
+    input {
+      width:100%;
+      padding:12px;
+      margin-bottom:12px;
+      background:#0e1117;
+      border:1px solid #2a2e39;
+      border-radius:8px;
+      color:#eaecef;
+    }
+
+    button {
+      width:100%;
+      padding:12px;
+      background:#4fd1c5;
+      border:none;
+      border-radius:8px;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
+    .link {
+      margin-top:14px;
+      text-align:center;
+      font-size:14px;
+    }
+
+    .link a {
+      color:#4fd1c5;
+      text-decoration:none;
+    }
+  </style>
+</head>
+
+<body>
+  <form method="post" class="card">
+    {% csrf_token %}
+
+    <h1>Login</h1>
+
+    <input type="text" name="username" placeholder="Username" required>
+    <input type="password" name="password" placeholder="Password" required>
+
+    <button type="submit">Login</button>
+
+    <div class="link">
+      Don’t have an account?
+      <a href="{% url 'signup' %}">Sign Up</a>
+    </div>
+  </form>
+</body>
+</html>

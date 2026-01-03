@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>CryptoRiskMonitor • Detail</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root{
+      --accent:#4fd1c5;
+      --bg:#0e1117;
+      --panel:#151922;
+      --border:#2a2e39;
+      --text:#eaecef;
+      --muted:#9aa4bf;
+    }
+
+    body{
+      margin:0;
+      background: linear-gradient(135deg, #0e1117, #0b3c3c);
+      font-family: Arial, sans-serif;
+      color:var(--text);
+    }
+
+    .container{
+      width:980px;
+      margin:60px auto;
+      padding:0 14px;
+    }
+
+    h1,h2{
+      color:var(--accent);
+      margin:0 0 12px 0;
+    }
+
+    .total{
+      font-size:28px;
+      font-weight:700;
+      margin-bottom:24px;
+    }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:18px;
+      margin-bottom:20px;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:10px;
+    }
+
+    th,td{
+      padding:10px 8px;
+      border-bottom:1px solid var(--border);
+      text-align:left;
+      font-size:14px;
+    }
+
+    th{
+      color:var(--muted);
+      font-weight:normal;
+      font-size:13px;
+    }
+
+    .pill{
+      padding:4px 10px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      font-size:12px;
+    }
+
+    .box{
+      background:var(--bg);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:14px;
+      line-height:1.6;
+    }
+
+    .score{
+      font-size:34px;
+      font-weight:800;
+      margin:10px 0 20px 0;
+      color:var(--accent);
+    }
+
+    /* VISUALS */
+    .visual-main{
+      display:flex;
+      justify-content:center;
+      margin-top:10px;
+    }
+
+    .visual-sub{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:26px;
+      margin-top:26px;
+    }
+
+    canvas{
+      background:var(--bg);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px;
+      max-width:380px;
+      max-height:240px;
+      margin:auto;
+    }
+
+    a{
+      color:var(--accent);
+      text-decoration:none;
+      font-weight:700;
+    }
+
+    a:hover{ text-decoration:underline; }
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+  <h1>Portfolio Risk Analysis</h1>
+  <div class="total">Total Value: ${{ portfolio.total_value_usd }}</div>
+
+  <!-- ASSETS -->
+  <div class="panel">
+    <h2>Assets</h2>
+    <table>
+      <tr>
+        <th>Asset</th>
+        <th>Allocation %</th>
+        <th>Price</th>
+        <th>24h</th>
+        <th>7d</th>
+        <th>Market Cap</th>
+      </tr>
+
+      {% for asset in assets %}
+      <tr>
+        <td><span class="pill">{{ asset.symbol }}</span></td>
+        <td>{{ asset.allocation_percent }}%</td>
+        <td>{% if asset.price_usd %}${{ asset.price_usd }}{% else %}—{% endif %}</td>
+        <td>{% if asset.change_24h %}{{ asset.change_24h }}%{% else %}—{% endif %}</td>
+        <td>{% if asset.change_7d %}{{ asset.change_7d }}%{% else %}—{% endif %}</td>
+        <td>{% if asset.market_cap %}{{ asset.market_cap }}{% else %}—{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <!-- AI -->
+  <div class="panel">
+    <h2>AI Interpretation</h2>
+    <div class="box">{{ ai_explanation }}</div>
+  </div>
+
+  <!-- SECURITY SCORE -->
+  <div class="panel">
+    <h2>Security Score</h2>
+    <div class="score">{{ ai_metrics.security_score }}/100 – {{ ai_metrics.risk_level }}</div>
+
+    <div class="visual-main">
+      <canvas id="securityChart"></canvas>
+    </div>
+  </div>
+
+  <!-- VISUALS -->
+  <div class="panel">
+    <h2>Portfolio Visuals</h2>
+    <div class="visual-sub">
+      <canvas id="dominanceChart"></canvas>
+      <canvas id="allocationChart"></canvas>
+    </div>
+  </div>
+
+  <div class="panel">
+    <a href="{% url 'dashboard' %}">← Back to Dashboard</a>
+  </div>
+
+</div>
+
+<script>
+  const assets = [
+    {% for asset in assets %}
+      { symbol: "{{ asset.symbol }}", alloc: {{ asset.allocation_percent }} },
+    {% endfor %}
+  ];
+
+  const ethBtc = assets
+    .filter(a => a.symbol === "ETH" || a.symbol === "BTC")
+    .reduce((s,a)=>s+a.alloc,0);
+
+  new Chart(securityChart,{
+    type:'doughnut',
+    data:{
+      datasets:[{
+        data:[{{ ai_metrics.security_score }},100-{{ ai_metrics.security_score }}],
+        backgroundColor:['#56e011ff','#d02f1dff'],
+        borderWidth:0
+      }]
+    },
+    options:{
+      cutout:'70%',
+      plugins:{ legend:{ display:false } }
+    }
+  });
+
+  new Chart(dominanceChart,{
+    type:'doughnut',
+    data:{
+      labels:['ETH + BTC','Others'],
+      datasets:[{
+        data:[ethBtc,100-ethBtc],
+        backgroundColor:['#e75f11ff','#2a2e39']
+      }]
+    },
+    options:{ plugins:{ legend:{ position:'bottom' } } }
+  });
+
+  new Chart(allocationChart,{
+    type:'doughnut',
+    data:{
+      labels:assets.map(a=>a.symbol),
+      datasets:[{ data:assets.map(a=>a.alloc) }]
+    },
+    options:{ plugins:{ legend:{ position:'bottom' } } }
+  });
+</script>
+
+</body>
+</html>
